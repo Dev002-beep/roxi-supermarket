@@ -2943,49 +2943,48 @@
         }
 
         function filterPosProducts(query) {
-            const q = (query || '').trim().toLowerCase();
-            const activeBtn = document.querySelector('.cat-btn.active');
-            const activeCat = activeBtn ? activeBtn.innerText : 'الكل';
-            
-            let sourceList = db.products;
-            if (activeCat !== 'الكل' && activeCat !== '') {
-                sourceList = db.products.filter(p => (p.category || 'عام') === activeCat);
-            }
-            
-            const filtered = sourceList.filter(p => {
-                const name = (p.name || '').toLowerCase();
-                const barcode = p.barcode || '';
-                return name.includes(q) || barcode.includes(q);
-            });
-            
-            renderPosProducts(filtered);
-        }
-
-        function renderPosProducts(filteredList = db.products) {
-            const grid = document.getElementById('pos-products-grid');
-            if (filteredList.length === 0) { grid.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><h3>لا توجد أصناف في المحل</h3></div>`; return; }
-            grid.innerHTML = filteredList.map(p => {
-                const stockClass = p.qty <= 5 ? 'stock-low' : 'stock-good';
-                const stockText = p.qty <= 5 ? `متبقي ${p.qty} فقط!` : `${p.qty} قطعة`;
-                return `<div class="product-card" onclick="addToCart('${p.id}')">
-                    <div class="product-category">${p.category || 'عام'}</div>
-                    <h3 class="product-name">${p.name}</h3>
-                    <p class="product-barcode">${p.barcode}</p>
-                    <div class="product-footer"><div class="product-price">${p.price || 0} <span>ج.م</span></div><div class="stock-badge ${stockClass}">${stockText}</div></div>
-                </div>`;
-            }).join('');
-        }
-
-        function filterPosProducts(query) {
             const q = (query || '').toLowerCase().trim();
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             if (!q) { renderPosProducts(); return; }
             const filtered = db.products.filter(p => {
                 const name = (p.name || '').toLowerCase();
                 const barcode = p.barcode || '';
-                return name.includes(q) || barcode.includes(q);
+                const cartonBarcode = p.cartonBarcode || '';
+                return name.includes(q) || barcode.includes(q) || cartonBarcode.includes(q);
             });
-            renderPosProducts(filtered);
+            renderPosProducts(filtered, q);
+        }
+
+        function renderPosProducts(filteredList = db.products, searchQuery = '') {
+            const grid = document.getElementById('pos-products-grid');
+            if (filteredList.length === 0) { grid.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><h3>لا توجد أصناف في المحل</h3></div>`; return; }
+            grid.innerHTML = filteredList.map(p => {
+                const stockClass = p.qty <= 5 ? 'stock-low' : 'stock-good';
+                const stockText = p.qty <= 5 ? `متبقي ${p.qty} فقط!` : `${p.qty} قطعة`;
+                
+                let displayName = p.name;
+                let displayBarcode = p.barcode;
+                let displayPrice = p.price || 0;
+                let qtyToClick = 1;
+                let cartonSubText = '';
+                
+                const q = searchQuery.trim().toLowerCase();
+                if (q && p.cartonBarcode && (p.cartonBarcode.toLowerCase() === q || p.cartonBarcode.toLowerCase().includes(q) && !p.barcode.toLowerCase().includes(q))) {
+                    displayName = `كرتونة ${p.name}`;
+                    displayBarcode = `باركود الكرتونة: ${p.cartonBarcode}`;
+                    qtyToClick = parseInt(p.cartonPieces) || 1;
+                    displayPrice = (p.price || 0) * qtyToClick;
+                    cartonSubText = `<div style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-top: 3px; border-top: 1px dashed var(--border); padding-top: 3px;">سعر الكرتونة (${qtyToClick} قطعة)</div>`;
+                }
+
+                return `<div class="product-card" onclick="addToCart('${p.id}', ${qtyToClick})">
+                    <div class="product-category">${p.category || 'عام'}</div>
+                    <h3 class="product-name">${displayName}</h3>
+                    <p class="product-barcode">${displayBarcode}</p>
+                    ${cartonSubText}
+                    <div class="product-footer"><div class="product-price">${displayPrice} <span>ج.م</span></div><div class="stock-badge ${stockClass}">${stockText}</div></div>
+                </div>`;
+            }).join('');
         }
 
         function addToCart(id, qty = 1) {
