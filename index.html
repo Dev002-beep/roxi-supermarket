@@ -1778,10 +1778,27 @@
                             <span>الضريبة (<span id="tax-rate-lbl">0</span>%):</span>
                             <span id="cart-tax">0.00 ج.م</span>
                         </div>
-                        <div class="summary-row" style="color: var(--accent); cursor: pointer;"
-                            onclick="promptDiscount()">
-                            <span>الخصم (اضغط للتعديل):</span>
-                            <span id="cart-discount">0.00 ج.م</span>
+                        <div class="summary-row" id="delivery-fee-row" style="color: var(--warning); display: none;">
+                            <span>خدمة التوصيل (دليفري):</span>
+                            <span id="cart-delivery">0.00 ج.م</span>
+                        </div>
+                        <div style="margin-top: 10px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold; font-size: 0.95rem; color: var(--text-main);">
+                                <input type="checkbox" id="chk-delivery-toggle" onchange="toggleDeliveryMode(this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>طلب دليفري (توصيل)</span>
+                            </label>
+                            
+                            <div id="delivery-info-form" style="display: none; flex-direction: column; gap: 8px; margin-top: 5px;">
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <input type="text" id="deliv-customer-name" placeholder="اسم العميل..." style="padding: 8px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-main);">
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <input type="text" id="deliv-customer-phone" placeholder="رقم الهاتف..." style="padding: 8px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-main);">
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <input type="text" id="deliv-customer-address" placeholder="العنوان بالتفصيل..." style="padding: 8px 12px; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-main);">
+                                </div>
+                            </div>
                         </div>
                         <div class="summary-total">
                             <span>الإجمالي المطلوب:</span>
@@ -1812,7 +1829,7 @@
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="input-group"><label>الباركود</label><input type="text" id="inv-barcode"
+                    <div class="input-group"><label>الباركود (قطعة)</label><input type="text" id="inv-barcode"
                             placeholder="امسح الباركود..."></div>
                     <div class="input-group"><label>اسم الصنف</label><input type="text" id="inv-name"
                             placeholder="اسم المنتج..."></div>
@@ -1826,6 +1843,13 @@
                             <option value="أخرى">أخرى</option>
                         </select>
                     </div>
+                </div>
+                <div class="form-row">
+                    <div class="input-group"><label>باركود الكرتونة / الصندوق (اختياري)</label><input type="text" id="inv-carton-barcode"
+                            placeholder="باركود الكرتونة..."></div>
+                    <div class="input-group"><label>عدد القطع بالكرتونة</label><input type="number" id="inv-carton-pieces"
+                            placeholder="مثال: 24" min="1"></div>
+                    <div class="input-group" style="visibility: hidden;"><label>-</label><input type="text"></div>
                 </div>
                 <div class="form-row">
                     <div class="input-group"><label>سعر التكلفة (ج.م)</label><input type="number" id="inv-cost"
@@ -2021,6 +2045,10 @@
                             <tbody id="ret-detail-tbody"></tbody>
                         </table>
                     </div>
+                    <div style="margin-top: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="print-return-receipt" checked style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="print-return-receipt" style="cursor: pointer; font-weight: bold; color: var(--text-main);">طباعة إيصال مرتجع</label>
+                    </div>
                     <button class="btn-danger"
                         style="width: 100%; padding: 15px; font-size: 1.1rem; display: flex; justify-content: center; gap: 10px;"
                         onclick="returnWholeInvoice()">
@@ -2083,9 +2111,8 @@
                         </div>
 
                         <div class="form-row" style="margin-top: 20px;">
-                            <div class="input-group"><label>اسم المتجر (من الترخيص)</label><input type="text"
-                                    id="set-store-name" readonly
-                                    style="background: var(--border); cursor: not-allowed; color: var(--text-muted);">
+                            <div class="input-group"><label>اسم المتجر (السوبر ماركت)</label><input type="text"
+                                    id="set-store-name" placeholder="اسم السوبر ماركت...">
                             </div>
                             <div class="input-group">
                                 <label><i class="fas fa-print"></i> اسم الطابعة في ويندوز (للقص التلقائي)</label>
@@ -2101,6 +2128,8 @@
                                     id="set-welcome-msg" placeholder="مثال: أهلاً بكم في متجرنا"></div>
                         </div>
                         <div class="form-row">
+                            <div class="input-group"><label>قيمة خدمة التوصيل (دليفري)</label><input type="number"
+                                    id="set-delivery-fee" placeholder="0.00" min="0" step="0.5"></div>
                             <div class="input-group"><label>رسالة الوداع (أسفل الفاتورة)</label><input type="text"
                                     id="set-footer-msg" placeholder="مثال: شكراً لزيارتكم"></div>
                             <div class="input-group"><label>المساحة البيضاء أسفل الفاتورة (mm)</label><input
@@ -2127,6 +2156,19 @@
                             onclick="saveSettings()">
                             <i class="fas fa-check-circle"></i> حفظ إعدادات الفاتورة في السحابة
                         </button>
+
+                        <!-- Local migration banner if premium_products is detected -->
+                        <div id="local-migration-card" style="margin-top: 30px; border: 1px dashed var(--warning); background: rgba(245, 158, 11, 0.05); padding: 20px; border-radius: 12px; display: none;">
+                            <h4 style="color: var(--warning); display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 10px;">
+                                <i class="fas fa-file-import"></i> ترحيل وترقية البيانات من النظام القديم
+                            </h4>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5;">
+                                إذا كان لديك أصناف مسجلة على هذا الجهاز في النسخة القديمة (قبل تفعيل السحابة)، يمكنك ضغط الزر التالي لرفعها وتثبيتها أونلاين فوراً دون الحاجة لملفات نسخ احتياطي.
+                            </p>
+                            <button class="btn-primary" id="btn-migrate-local" style="background: linear-gradient(135deg, var(--warning), #d97706); border: none; font-size: 1.05rem; padding: 12px;" onclick="migrateLocalProductsToCloud()">
+                                <i class="fas fa-cloud-arrow-up"></i> رفع الأصناف المحلية (<span id="local-migrate-count">0</span> صنف) إلى السحابة الآن
+                            </button>
+                        </div>
                     </div>
 
         </section>
@@ -2327,12 +2369,13 @@
         const authService = firebase.auth();
         const cloudDb = firebase.database();
 
-        // --- System State (Empty to start, filled by Cloud Sync) ---
+        // --- System State (Load local first, then synced from Cloud) ---
         let db = {
-            products: [], // All data directly synced from Firebase
-            sales: [],
-            customers: [],
+            products: JSON.parse(localStorage.getItem('premium_products')) || [], 
+            sales: JSON.parse(localStorage.getItem('premium_sales')) || [],
+            customers: JSON.parse(localStorage.getItem('premium_customers')) || [],
             settings: {
+                storeName: "",
                 phone: "",
                 welcomeMsg: "أهلاً بكم في متجرنا",
                 footerMsg: "شكراً لزيارتكم",
@@ -2344,13 +2387,19 @@
                 fontSize: 14,
                 invoiceWidth: 72,
                 printOffset: 0,
-                printerName: ""
+                printerName: "",
+                deliveryFee: 0
             }
         };
+        // Copy original offline products at startup to prevent overwrite before migration
+        let originalOfflineProducts = JSON.parse(JSON.stringify(db.products || []));
         let posUser = null;
         let cart = [];
         let discount = 0;
         let isWholesaleMode = false;
+        let isDeliveryMode = false;
+        let isProcessingPayment = false;
+        let isProcessingReturn = false;
         let licenseData = { storeName: "سوبر ماركت (مغلق)", adminPin: "0000", hwSerial: "" };
 
         // ============================================================
@@ -2482,7 +2531,7 @@
         });
 
         function unlockApp() {
-            document.getElementById('display-store-name').innerText = licenseData.storeName;
+            document.getElementById('display-store-name').innerText = db.settings.storeName || licenseData.storeName;
             initTheme();
             syncCloudData();
         }
@@ -2524,6 +2573,9 @@
                 const data = snapshot.val();
                 if (data) {
                     db.settings = { ...db.settings, ...data };
+                }
+                if (db.settings.storeName) {
+                    document.getElementById('display-store-name').innerText = db.settings.storeName;
                 }
                 populateSettings();
                 calculateCart();
@@ -2681,9 +2733,14 @@
                         code = barcodeBuffer.trim();
                     }
                     if (code) {
-                        const product = db.products.find(p => p.barcode === code);
+                        const product = db.products.find(p => p.barcode === code || (p.cartonBarcode && p.cartonBarcode === code));
                         if (product) {
-                            addToCart(product.id);
+                            let qtyToAdd = 1;
+                            if (product.cartonBarcode === code) {
+                                qtyToAdd = parseInt(product.cartonPieces) || 1;
+                                showToast(`تم إضافة كرتونة كاملة (${qtyToAdd} قطعة) من "${product.name}"`, 'success');
+                            }
+                            addToCart(product.id, qtyToAdd);
                             if (e.target.id === 'pos-search') { e.target.value = ''; filterPosProducts(''); }
                         } else {
                             showToast('صنف غير موجود!', 'error');
@@ -2711,11 +2768,14 @@
             const w = parseFloat(document.getElementById('inv-wholesale').value) || 0;
             const p = parseFloat(document.getElementById('inv-price').value);
             const q = parseInt(document.getElementById('inv-qty').value);
+            const cb = document.getElementById('inv-carton-barcode').value.trim();
+            const cp = parseInt(document.getElementById('inv-carton-pieces').value) || 0;
 
             if (!b || !n || isNaN(cost) || isNaN(p) || isNaN(q)) { showToast('بيانات غير مكتملة', 'warning'); return; }
 
             const productData = {
-                barcode: b, name: n, category: c, cost: cost, wholesale: w, price: p, qty: q
+                barcode: b, name: n, category: c, cost: cost, wholesale: w, price: p, qty: q,
+                cartonBarcode: cb, cartonPieces: cp
             };
 
             // Check if existing to update its key, or make a new one based on timestamp
@@ -2734,10 +2794,16 @@
 
         function renderInventoryTable() {
             const q = (document.getElementById('inv-search')?.value || '').toLowerCase();
-            document.getElementById('inventory-table-body').innerHTML = db.products.filter(p => p.name.toLowerCase().includes(q) || p.barcode.includes(q)).map(p => `
-                <tr><td style="font-family:monospace;">${p.barcode}</td><td style="font-weight:800;">${p.name}</td><td><span style="background:var(--primary-light); color:var(--primary); padding:4px 8px; border-radius:6px; font-size:0.85rem;">${p.category || '-'}</span></td>
+            const filtered = db.products.filter(p => {
+                const name = (p.name || '').toLowerCase();
+                const barcode = p.barcode || '';
+                const cartonBarcode = p.cartonBarcode || '';
+                return name.includes(q) || barcode.includes(q) || cartonBarcode.includes(q);
+            });
+            document.getElementById('inventory-table-body').innerHTML = filtered.map(p => `
+                <tr><td style="font-family:monospace;">${p.barcode || '-'}${p.cartonBarcode ? ` / كرتونة: ${p.cartonBarcode}` : ''}</td><td style="font-weight:800;">${p.name || 'صنف بدون اسم'}</td><td><span style="background:var(--primary-light); color:var(--primary); padding:4px 8px; border-radius:6px; font-size:0.85rem;">${p.category || '-'}</span></td>
                 <td>${(p.cost || 0).toFixed(2)}</td><td style="color:var(--warning); font-weight:800;">${(p.wholesale || 0).toFixed(2)}</td><td style="color:var(--success); font-weight:800;">${(p.price || 0).toFixed(2)}</td>
-                <td><span style="padding:4px 10px; border-radius:6px; ${p.qty <= 5 ? 'background:rgba(239, 68, 68, 0.1); color:var(--danger);' : 'background:rgba(16, 185, 129, 0.1); color:var(--success);'}">${p.qty}</span></td>
+                <td><span style="padding:4px 10px; border-radius:6px; ${(p.qty || 0) <= 5 ? 'background:rgba(239, 68, 68, 0.1); color:var(--danger);' : 'background:rgba(16, 185, 129, 0.1); color:var(--success);'}">${p.qty || 0}</span></td>
                 <td class="action-btns"><button class="action-btn edit" onclick="editProduct('${p.id}')"><i class="fas fa-pen"></i></button><button class="action-btn delete" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></button></td></tr>
             `).join('');
         }
@@ -2752,6 +2818,8 @@
                 document.getElementById('inv-wholesale').value = p.wholesale || 0;
                 document.getElementById('inv-price').value = p.price || 0;
                 document.getElementById('inv-qty').value = p.qty || 0;
+                document.getElementById('inv-carton-barcode').value = p.cartonBarcode || '';
+                document.getElementById('inv-carton-pieces').value = p.cartonPieces || 0;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
@@ -2829,7 +2897,7 @@
             document.getElementById('stock-report-content').style.display = 'block';
 
             currentStockReportHtml = `
-                <div class="print-center"><h2 style="margin:0; font-size:16px;">${licenseData.storeName}</h2><p style="margin:5px 0;">${titles[period]}</p><p style="margin:0; font-size:11px;">تاريخ التقرير: ${new Date().toLocaleString('ar-EG')}</p></div>
+                <div class="print-center"><h2 style="margin:0; font-size:16px;">${db.settings.storeName || licenseData.storeName}</h2><p style="margin:5px 0;">${titles[period]}</p><p style="margin:0; font-size:11px;">تاريخ التقرير: ${new Date().toLocaleString('ar-EG')}</p></div>
                 <div class="print-line"></div>
                 <div class="print-row print-bold" style="font-size:11px;"><span>الصنف (الكمية)</span><span>الإجمالي / المتبقي</span></div>
                 ${printHtml}
@@ -2874,6 +2942,25 @@
             document.getElementById('pos-search').value = '';
         }
 
+        function filterPosProducts(query) {
+            const q = (query || '').trim().toLowerCase();
+            const activeBtn = document.querySelector('.cat-btn.active');
+            const activeCat = activeBtn ? activeBtn.innerText : 'الكل';
+            
+            let sourceList = db.products;
+            if (activeCat !== 'الكل' && activeCat !== '') {
+                sourceList = db.products.filter(p => (p.category || 'عام') === activeCat);
+            }
+            
+            const filtered = sourceList.filter(p => {
+                const name = (p.name || '').toLowerCase();
+                const barcode = p.barcode || '';
+                return name.includes(q) || barcode.includes(q);
+            });
+            
+            renderPosProducts(filtered);
+        }
+
         function renderPosProducts(filteredList = db.products) {
             const grid = document.getElementById('pos-products-grid');
             if (filteredList.length === 0) { grid.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><h3>لا توجد أصناف في المحل</h3></div>`; return; }
@@ -2890,20 +2977,29 @@
         }
 
         function filterPosProducts(query) {
-            query = query.toLowerCase().trim();
+            const q = (query || '').toLowerCase().trim();
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            if (!query) { renderPosProducts(); return; }
-            renderPosProducts(db.products.filter(p => p.name.toLowerCase().includes(query) || p.barcode.includes(query)));
+            if (!q) { renderPosProducts(); return; }
+            const filtered = db.products.filter(p => {
+                const name = (p.name || '').toLowerCase();
+                const barcode = p.barcode || '';
+                return name.includes(q) || barcode.includes(q);
+            });
+            renderPosProducts(filtered);
         }
 
-        function addToCart(id) {
+        function addToCart(id, qty = 1) {
             const product = db.products.find(p => p.id === id);
             if (!product || product.qty <= 0) { showToast('الصنف نافذ من المحل!', 'error'); return; }
             const existing = cart.find(i => i.id === id);
+            const addQty = parseInt(qty) || 1;
             if (existing) {
-                if (existing.cartQty >= product.qty) { showToast('تجاوزت الرصيد المتاح!', 'warning'); return; }
-                existing.cartQty++;
-            } else { cart.push({ ...product, cartQty: 1 }); }
+                if (existing.cartQty + addQty > product.qty) { showToast('تجاوزت الرصيد المتاح!', 'warning'); return; }
+                existing.cartQty += addQty;
+            } else {
+                if (addQty > product.qty) { showToast('الكمية المطلوبة أكبر من الرصيد المتاح!', 'warning'); return; }
+                cart.push({ ...product, cartQty: addQty, isWholesale: false });
+            }
             renderCartUI();
         }
 
@@ -2918,21 +3014,68 @@
             }
         }
 
-        function clearCart() { cart = []; discount = 0; renderCartUI(); }
-        function promptDiscount() { const val = prompt('أدخل قيمة الخصم بالجنيه:', discount); if (val !== null && !isNaN(val) && val >= 0) { discount = parseFloat(val); renderCartUI(); } }
+        function clearCart() {
+            cart = [];
+            isDeliveryMode = false;
+            const chkDeliv = document.getElementById('chk-delivery-toggle');
+            if (chkDeliv) chkDeliv.checked = false;
+            const form = document.getElementById('delivery-info-form');
+            if (form) form.style.display = 'none';
+            document.getElementById('deliv-customer-name').value = '';
+            document.getElementById('deliv-customer-phone').value = '';
+            document.getElementById('deliv-customer-address').value = '';
+            renderCartUI();
+        }
+        function promptDiscount() {} // Discarded but kept dummy
+
+        function toggleDeliveryMode(isChecked) {
+            isDeliveryMode = isChecked;
+            const form = document.getElementById('delivery-info-form');
+            if (form) {
+                form.style.display = isChecked ? 'flex' : 'none';
+            }
+            if (!isChecked) {
+                document.getElementById('deliv-customer-name').value = '';
+                document.getElementById('deliv-customer-phone').value = '';
+                document.getElementById('deliv-customer-address').value = '';
+            }
+            calculateCart();
+        }
+
+        function toggleItemWholesale(id) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.isWholesale = !item.isWholesale;
+                renderCartUI();
+            }
+        }
 
         let currentTotals = {};
         function calculateCart() {
             const subtotal = cart.reduce((sum, i) => {
-                let pPrice = isWholesaleMode && (i.wholesale > 0) ? i.wholesale : (i.price || 0);
+                let activeWholesale = i.isWholesale || (isWholesaleMode && i.wholesale > 0);
+                let pPrice = activeWholesale && (i.wholesale > 0) ? i.wholesale : (i.price || 0);
                 return sum + (pPrice * i.cartQty);
             }, 0);
             const totalCost = cart.reduce((sum, i) => sum + ((i.cost || 0) * i.cartQty), 0);
-            let total = Math.max(0, subtotal - discount);
+            let delFee = isDeliveryMode ? (parseFloat(db.settings.deliveryFee) || 0) : 0;
+            let total = subtotal + delFee;
+            
             document.getElementById('cart-subtotal').innerText = `${subtotal.toFixed(2)} ج.م`;
-            document.getElementById('cart-discount').innerText = `${discount.toFixed(2)} ج.م`;
+            
+            const delRow = document.getElementById('delivery-fee-row');
+            const delVal = document.getElementById('cart-delivery');
+            if (delRow && delVal) {
+                if (isDeliveryMode) {
+                    delRow.style.display = 'flex';
+                    delVal.innerText = `${delFee.toFixed(2)} ج.م`;
+                } else {
+                    delRow.style.display = 'none';
+                }
+            }
+            
             document.getElementById('cart-total').innerText = `${total.toFixed(2)} ج.م`;
-            currentTotals = { subtotal, total, discount, tax: 0, profit: total - totalCost };
+            currentTotals = { subtotal, total, discount: 0, tax: 0, isDelivery: isDeliveryMode, deliveryFee: delFee, profit: (total - delFee) - totalCost };
         }
 
         function togglePriceMode() {
@@ -2956,11 +3099,19 @@
             if (cart.length === 0) { container.innerHTML = `<div style="text-align: center; padding: 40px 20px; color: var(--text-muted);"><i class="fas fa-basket-shopping" style="font-size: 3rem; color: var(--border); margin-bottom: 10px;"></i><p>السلة فارغة حالياً.</p></div>`; }
             else {
                 container.innerHTML = cart.map(item => {
-                    let pPrice = isWholesaleMode && (item.wholesale > 0) ? item.wholesale : (item.price || 0);
+                    let activeWholesale = item.isWholesale || (isWholesaleMode && item.wholesale > 0);
+                    let pPrice = activeWholesale && (item.wholesale > 0) ? item.wholesale : (item.price || 0);
+                    let wholesaleBadge = activeWholesale ? `<span style="background: var(--warning); color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px;">جملة</span>` : '';
                     return `
                     <div class="cart-item">
-                        <div class="cart-item-info"><h4>${item.name}</h4><p>${(pPrice * item.cartQty).toFixed(2)} ج.م</p></div>
+                        <div class="cart-item-info">
+                            <h4>${item.name} ${wholesaleBadge}</h4>
+                            <p>${(pPrice * item.cartQty).toFixed(2)} ج.م <span style="font-size: 0.8rem; color: var(--text-muted);">(${pPrice.toFixed(2)} ج.م)</span></p>
+                        </div>
                         <div class="qty-controls">
+                            <button class="qty-btn" onclick="toggleItemWholesale('${item.id}')" title="تغيير سعر الجملة" style="background: ${activeWholesale ? 'rgba(245, 158, 11, 0.2)' : 'var(--background)'}; color: ${activeWholesale ? 'var(--warning)' : 'var(--text-muted)'}; margin-left: 5px; border: 1px solid ${activeWholesale ? 'var(--warning)' : 'transparent'};">
+                                <i class="fas fa-tags"></i>
+                            </button>
                             <button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button><span class="qty-val">${item.cartQty}</span>
                             <button class="qty-btn" onclick="updateQty('${item.id}', -1)">-</button><i class="fas fa-trash-can delete-item" onclick="updateQty('${item.id}', -999)"></i>
                         </div>
@@ -3007,17 +3158,31 @@
             const rec = parseFloat(document.getElementById('chk-received').value) || 0;
             if (rec < currentTotals.total && currentTotals.total > 0) { showToast('المبلغ المدفوع أقل من المطلوب!', 'error'); return; }
 
+            if (isProcessingPayment) return;
+            isProcessingPayment = true;
+
+            // Disable checkout buttons to prevent double-click
+            const chkModal = document.getElementById('checkout-modal');
+            const buttons = chkModal ? chkModal.querySelectorAll('button') : [];
+            buttons.forEach(btn => btn.disabled = true);
+
             const saleId = Math.floor(100000 + Math.random() * 900000);
             const saleObj = {
                 id: saleId,
                 date: new Date().toLocaleString('ar-EG'),
                 items: cart.map(c => {
-                    let pPrice = isWholesaleMode && (c.wholesale > 0) ? c.wholesale : (c.price || 0);
-                    return { id: c.id, name: c.name, barcode: c.barcode, cartQty: c.cartQty, price: pPrice, cost: c.cost };
+                    let activeWholesale = c.isWholesale || (isWholesaleMode && c.wholesale > 0);
+                    let pPrice = activeWholesale && (c.wholesale > 0) ? c.wholesale : (c.price || 0);
+                    return { id: c.id, name: c.name, barcode: c.barcode, cartQty: c.cartQty, price: pPrice, cost: c.cost, isWholesale: activeWholesale };
                 }),
                 subtotal: currentTotals.subtotal || 0,
                 total: currentTotals.total || 0,
-                discount: currentTotals.discount || 0,
+                discount: 0,
+                isDelivery: isDeliveryMode,
+                deliveryFee: isDeliveryMode ? (parseFloat(db.settings.deliveryFee) || 0) : 0,
+                customerName: isDeliveryMode ? document.getElementById('deliv-customer-name').value.trim() : '',
+                customerPhone: isDeliveryMode ? document.getElementById('deliv-customer-phone').value.trim() : '',
+                customerAddress: isDeliveryMode ? document.getElementById('deliv-customer-address').value.trim() : '',
                 profit: currentTotals.profit || 0,
                 tax: 0,
                 timestamp: Date.now(),
@@ -3047,6 +3212,10 @@
                 .catch(err => {
                     showToast('خطأ في الاتصال: ' + err.message, 'error');
                     console.error('Firebase Error:', err);
+                })
+                .finally(() => {
+                    isProcessingPayment = false;
+                    buttons.forEach(btn => btn.disabled = false);
                 });
         }
 
@@ -3060,15 +3229,27 @@
 
             const itemsHtml = (sale.items || []).map(item => `
                 <div class="print-row">
-                    <span>${item.name} (x${item.cartQty})</span>
+                    <span>${item.name} ${item.isWholesale ? '(جملة)' : ''} (x${item.cartQty})</span>
                     <span>${((item.price || 0) * item.cartQty).toFixed(2)}</span>
                 </div>
             `).join('');
 
+            const deliveryHtml = sale.isDelivery ? `
+                <div class="print-line"></div>
+                <div class="print-center print-bold" style="font-size: 13px; margin-bottom: 5px;">🚗 طلب دليفري (توصيل) 🚗</div>
+                <div class="print-row"><span>الاسم:</span><span>${sale.customerName || 'غير محدد'}</span></div>
+                <div class="print-row"><span>الهاتف:</span><span>${sale.customerPhone || 'غير محدد'}</span></div>
+                <div class="print-row" style="text-align: right; justify-content: flex-start; gap: 5px;"><span>العنوان:</span><span>${sale.customerAddress || 'غير محدد'}</span></div>
+            ` : '';
+
+            const deliveryFeeLine = sale.isDelivery && sale.deliveryFee > 0 ? `
+                <div class="print-row"><span>خدمة التوصيل:</span><span>+${sale.deliveryFee.toFixed(2)}</span></div>
+            ` : '';
+
             return `
                 <div class="print-center">
                     ${logoHtml}
-                    <h2 style="margin:0; font-size:18px;">${licenseData.storeName}</h2>
+                    <h2 style="margin:0; font-size:18px;">${db.settings.storeName || licenseData.storeName}</h2>
                     ${welcomeMsg}${phone}
                     <p style="margin:5px 0; font-size:11px;">رقم الفاتورة: #${sale.id}</p>
                     <p style="margin:0; font-size:11px;">${sale.date}</p>
@@ -3077,9 +3258,10 @@
                 <div class="print-row print-bold" style="font-size:11px; margin-bottom:5px;"><span>الصنف</span><span>الإجمالي</span></div>
                 ${itemsHtml}
                 <div class="print-line"></div><div class="print-row"><span>المجموع:</span><span>${sale.subtotal.toFixed(2)}</span></div>
-                ${sale.discount > 0 ? `<div class="print-row"><span>خصم:</span><span>-${sale.discount.toFixed(2)}</span></div>` : ''}
+                ${deliveryFeeLine}
                 <div class="print-line"></div><div class="print-row print-bold" style="font-size: 1.2em;"><span>المطلوب صافي:</span><span>${sale.total.toFixed(2)} ج.م</span></div>
                 <div class="print-row"><span>مدفوع:</span><span>${cash.toFixed(2)}</span></div><div class="print-row"><span>الباقي:</span><span>${change.toFixed(2)}</span></div>
+                ${deliveryHtml}
                 <div class="print-line"></div><div class="print-center" style="margin-top:10px;">${notesMsg}${footerMsg}</div>
                 <p style="margin:0; height:1px; visibility:hidden;">.</p>
             `;
@@ -3091,10 +3273,18 @@
             const saleObj = {
                 id: saleId,
                 date: new Date().toLocaleString('ar-EG'),
-                items: cart.map(c => ({ id: c.id, name: c.name, barcode: c.barcode, cartQty: c.cartQty, price: c.price, cost: c.cost })),
+                items: cart.map(c => {
+                    let activeWholesale = c.isWholesale || (isWholesaleMode && c.wholesale > 0);
+                    let pPrice = activeWholesale && (c.wholesale > 0) ? c.wholesale : (c.price || 0);
+                    return { id: c.id, name: c.name, barcode: c.barcode, cartQty: c.cartQty, price: pPrice, cost: c.cost, isWholesale: activeWholesale };
+                }),
                 subtotal: currentTotals.subtotal || 0,
                 total: currentTotals.total || 0,
-                discount: currentTotals.discount || 0
+                isDelivery: isDeliveryMode,
+                deliveryFee: isDeliveryMode ? (parseFloat(db.settings.deliveryFee) || 0) : 0,
+                customerName: isDeliveryMode ? document.getElementById('deliv-customer-name').value.trim() : '',
+                customerPhone: isDeliveryMode ? document.getElementById('deliv-customer-phone').value.trim() : '',
+                customerAddress: isDeliveryMode ? document.getElementById('deliv-customer-address').value.trim() : ''
             };
 
             const content = document.getElementById('preview-content');
@@ -3192,12 +3382,88 @@
             document.getElementById('returns-detail-panel').style.display = 'block';
         }
 
+        function generateReturnReceiptHTML(sale, returnedItem, returnedQty, isWhole = false) {
+            const logoW = db.settings.logoWidth || 50;
+            const logoHtml = db.settings.logo ? `<img src="${db.settings.logo}" style="display:block; margin: 0 auto 10px auto; width: ${logoW}mm;">` : '';
+            let itemsHtml = '';
+            let totalReturned = 0;
+            
+            if (isWhole) {
+                itemsHtml = (sale.items || []).map(item => {
+                    totalReturned += (item.price || 0) * item.cartQty;
+                    return `<div class="print-row"><span>${item.name} (x${item.cartQty}) [مرتجع]</span><span>${((item.price || 0) * item.cartQty).toFixed(2)}</span></div>`;
+                }).join('');
+            } else if (returnedItem) {
+                totalReturned = (returnedItem.price || 0) * returnedQty;
+                itemsHtml = `<div class="print-row"><span>${returnedItem.name} (x${returnedQty}) [مرتجع]</span><span>${totalReturned.toFixed(2)}</span></div>`;
+            }
+            
+            return `
+                <div class="print-center">
+                    ${logoHtml}
+                    <h2 style="margin:0; font-size:18px;">${db.settings.storeName || licenseData.storeName}</h2>
+                    <h3 style="margin:5px 0; font-weight:bold; color:red;">إيصال مرتجع فاتورة</h3>
+                    <p style="margin:5px 0; font-size:11px;">رقم الفاتورة الأصلية: #${sale.id}</p>
+                    <p style="margin:0; font-size:11px;">تاريخ المرتجع: ${new Date().toLocaleString('ar-EG')}</p>
+                </div>
+                <div class="print-line"></div>
+                <div class="print-row print-bold" style="font-size:11px; margin-bottom:5px;"><span>الصنف المرتجع</span><span>الإجمالي</span></div>
+                ${itemsHtml}
+                <div class="print-line"></div>
+                <div class="print-row print-bold" style="font-size: 1.2em;"><span>إجمالي القيمة المستردة:</span><span>${totalReturned.toFixed(2)} ج.م</span></div>
+                <div class="print-line"></div>
+                <div class="print-center" style="margin-top:10px; font-weight:bold;">شكراً لتفهمكم</div>
+                <p style="margin:0; height:1px; visibility:hidden;">.</p>
+            `;
+        }
+
+        function printReturnReceipt(sale, returnedItem, returnedQty, isWhole = false) {
+            const area = document.getElementById('print-area');
+            const invW = db.settings.invoiceWidth || 72;
+            const fsSize = db.settings.fontSize || 14;
+            const offset = db.settings.printOffset || 0;
+
+            area.style.width = '100%';
+            area.style.maxWidth = '100%';
+            area.style.margin = '0';
+            area.style.fontSize = fsSize + 'px';
+            area.style.paddingRight = offset + 'mm';
+            area.style.paddingBottom = (db.settings.bottomSpace || 15) + 'mm';
+            area.innerHTML = generateReturnReceiptHTML(sale, returnedItem, returnedQty, isWhole);
+
+            setTimeout(() => {
+                if (isElectron && typeof require !== 'undefined') {
+                    try {
+                        const { ipcRenderer } = require('electron');
+                        if (ipcRenderer) {
+                            ipcRenderer.send('print-silent', db.settings.printerName, invW);
+                            return;
+                        }
+                    } catch (e) { }
+                }
+                window.print();
+            }, 1000);
+        }
+
         function returnSingleItem(saleId, itemId) {
             if (!confirm('تأكيد إرجاع الصنف؟')) return;
             const sale = db.sales.find(s => s.id === saleId); if (!sale) return;
             const iIdx = sale.items.findIndex(i => i.id === itemId); if (iIdx === -1) return;
 
+            if (isProcessingReturn) return;
+            isProcessingReturn = true;
+
+            const retPanel = document.getElementById('returns-detail-panel');
+            const buttons = retPanel ? retPanel.querySelectorAll('button') : [];
+            buttons.forEach(btn => btn.disabled = true);
+
             const item = sale.items[iIdx];
+
+            // Print Return Receipt if checked
+            const shouldPrint = document.getElementById('print-return-receipt')?.checked;
+            if (shouldPrint) {
+                printReturnReceipt(sale, item, item.cartQty, false);
+            }
 
             // Cloud Updates
             const updates = {};
@@ -3211,6 +3477,11 @@
                     document.getElementById('returns-detail-panel').style.display = 'none';
                     currentReturnInvoice = null;
                     showToast('تم حذف الفاتورة بالكامل.');
+                })
+                .catch(err => showToast('خطأ في إرجاع الفاتورة: ' + err.message, 'error'))
+                .finally(() => {
+                    isProcessingReturn = false;
+                    buttons.forEach(btn => btn.disabled = false);
                 });
             } else {
                 sale.subtotal = sale.items.reduce((sum, i) => sum + ((i.price || 0) * i.cartQty), 0);
@@ -3224,12 +3495,30 @@
                 cloudDb.ref().update(updates).then(() => {
                     showToast('تم إرجاع الصنف وتحديث الفاتورة.');
                     showReturnDetails(saleId);
+                })
+                .catch(err => showToast('خطأ في استرجاع الصنف: ' + err.message, 'error'))
+                .finally(() => {
+                    isProcessingReturn = false;
+                    buttons.forEach(btn => btn.disabled = false);
                 });
             }
         }
 
         function returnWholeInvoice() {
             if (!currentReturnInvoice || !confirm('تأكيد إلغاء الفاتورة بالكامل وإرجاع الأصناف؟')) return;
+
+            if (isProcessingReturn) return;
+            isProcessingReturn = true;
+
+            const retPanel = document.getElementById('returns-detail-panel');
+            const buttons = retPanel ? retPanel.querySelectorAll('button') : [];
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Print Return Receipt if checked
+            const shouldPrint = document.getElementById('print-return-receipt')?.checked;
+            if (shouldPrint) {
+                printReturnReceipt(currentReturnInvoice, null, 0, true);
+            }
 
             const updates = {};
             currentReturnInvoice.items.forEach(item => {
@@ -3243,6 +3532,11 @@
                 document.getElementById('returns-detail-panel').style.display = 'none';
                 currentReturnInvoice = null;
                 showToast('تم إلغاء الفاتورة بالكامل.');
+            })
+            .catch(err => showToast('خطأ في إرجاع الفاتورة: ' + err.message, 'error'))
+            .finally(() => {
+                isProcessingReturn = false;
+                buttons.forEach(btn => btn.disabled = false);
             });
         }
 
@@ -3250,7 +3544,7 @@
         //  SETTINGS (Cloud)
         // ============================================================
         function populateSettings() {
-            document.getElementById('set-store-name').value = licenseData.storeName;
+            document.getElementById('set-store-name').value = db.settings.storeName || licenseData.storeName;
             document.getElementById('set-phone').value = db.settings.phone || "";
             document.getElementById('set-welcome-msg').value = db.settings.welcomeMsg || "";
             document.getElementById('set-footer-msg').value = db.settings.footerMsg || "";
@@ -3261,6 +3555,7 @@
             document.getElementById('set-invoice-width').value = db.settings.invoiceWidth || 72;
             document.getElementById('set-print-offset').value = db.settings.printOffset || 0;
             document.getElementById('set-printer-name').value = db.settings.printerName || "";
+            document.getElementById('set-delivery-fee').value = db.settings.deliveryFee || 0;
 
             // Logo Preview Update
             const preview = document.getElementById('set-logo-preview');
@@ -3272,6 +3567,67 @@
             } else {
                 preview.style.display = 'none';
                 icon.style.display = 'block';
+            }
+
+            // Local products migration check
+            const migrationCard = document.getElementById('local-migration-card');
+            if (originalOfflineProducts && originalOfflineProducts.length > 0 && migrationCard) {
+                migrationCard.style.display = 'block';
+                document.getElementById('local-migrate-count').innerText = originalOfflineProducts.length;
+            } else if (migrationCard) {
+                migrationCard.style.display = 'none';
+            }
+        }
+
+        function migrateLocalProductsToCloud() {
+            const localProds = originalOfflineProducts;
+            if (!localProds || localProds.length === 0) {
+                showToast('لم يتم العثور على أي أصناف مخزنة محلياً لترحيلها', 'error');
+                return;
+            }
+
+            try {
+                if (!confirm(`هل أنت متأكد من رغبتك في رفع وترحيل عدد ${localProds.length} صنف محلي إلى السحابة فوراً؟`)) {
+                    return;
+                }
+
+                const btn = document.getElementById('btn-migrate-local');
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+
+                const updates = {};
+                localProds.forEach((prod, index) => {
+                    if (!prod.barcode) return;
+                    const id = prod.id || prod.barcode || (Date.now() + index).toString();
+                    updates[`inventory/products/${id}`] = {
+                        barcode: prod.barcode,
+                        name: prod.name || 'صنف بدون اسم',
+                        category: prod.category || 'عام',
+                        cost: parseFloat(prod.cost) || 0,
+                        price: parseFloat(prod.price) || 0,
+                        wholesale: parseFloat(prod.wholesale) || 0,
+                        qty: parseInt(prod.qty) || 0
+                    };
+                });
+
+                cloudDb.ref().update(updates)
+                    .then(() => {
+                        showToast(`تم ترحيل ورفع ${localProds.length} صنف إلى السحابة بنجاح!`);
+                        const migrationCard = document.getElementById('local-migration-card');
+                        if (migrationCard) migrationCard.style.display = 'none';
+                        originalOfflineProducts = []; // Clear after success
+                    })
+                    .catch((err) => {
+                        showToast('حدث خطأ أثناء الرفع السحابي', 'error');
+                        console.error(err);
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    });
+
+            } catch (err) {
+                showToast('تنسيق البيانات المحلية غير صالح', 'error');
             }
         }
 
@@ -3304,6 +3660,7 @@
 
         function saveSettings() {
             const settingsData = {
+                storeName: document.getElementById('set-store-name').value.trim(),
                 phone: document.getElementById('set-phone').value.trim(),
                 welcomeMsg: document.getElementById('set-welcome-msg').value.trim(),
                 footerMsg: document.getElementById('set-footer-msg').value.trim(),
@@ -3314,6 +3671,7 @@
                 invoiceWidth: parseInt(document.getElementById('set-invoice-width').value) || 72,
                 printOffset: parseInt(document.getElementById('set-print-offset').value) || 0,
                 printerName: document.getElementById('set-printer-name').value.trim(),
+                deliveryFee: parseFloat(document.getElementById('set-delivery-fee').value) || 0,
                 logo: db.settings.logo || ""
             };
 
