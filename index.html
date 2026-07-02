@@ -1940,8 +1940,14 @@
         </section>
 
         <section id="reports" class="section">
-            <div class="page-header">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                 <h1 class="page-title">لوحة القيادة والتقارير المالية</h1>
+                <div style="display: flex; gap: 8px; background: var(--surface); padding: 5px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="cat-btn active" onclick="filterReportsPeriod('all', this)" style="padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 8px; border: none; height: auto;">الكل</button>
+                    <button class="cat-btn" onclick="filterReportsPeriod('daily', this)" style="padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 8px; border: none; height: auto;">اليوم</button>
+                    <button class="cat-btn" onclick="filterReportsPeriod('weekly', this)" style="padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 8px; border: none; height: auto;">هذا الأسبوع</button>
+                    <button class="cat-btn" onclick="filterReportsPeriod('monthly', this)" style="padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 8px; border: none; height: auto;">هذا الشهر</button>
+                </div>
             </div>
 
             <div class="stats-container">
@@ -2400,6 +2406,7 @@
         let isDeliveryMode = false;
         let isProcessingPayment = false;
         let isProcessingReturn = false;
+        let currentReportsPeriod = 'all';
         let licenseData = { storeName: "سوبر ماركت (مغلق)", adminPin: "0000", hwSerial: "" };
 
         // ============================================================
@@ -3326,16 +3333,43 @@
         // ============================================================
         //  REPORTS & DASHBOARD
         // ============================================================
+        function filterReportsPeriod(period, btn) {
+            currentReportsPeriod = period;
+            const buttons = btn.parentElement.querySelectorAll('button');
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderReports();
+        }
+
         function renderReports() {
             const q = (document.getElementById('rep-search-input')?.value || '').trim().toLowerCase();
 
+            // Calculate cutoff timestamp based on selected period
+            const now = new Date();
+            let cutoff = 0;
+            if (currentReportsPeriod === 'daily') {
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                cutoff = today.getTime();
+            } else if (currentReportsPeriod === 'weekly') {
+                const weeklyCutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                cutoff = weeklyCutoff.getTime();
+            } else if (currentReportsPeriod === 'monthly') {
+                const monthlyCutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+                cutoff = monthlyCutoff.getTime();
+            }
+
+            const filteredSales = db.sales.filter(s => {
+                let ts = getSaleTimestamp(s);
+                return ts >= cutoff;
+            });
+
             let absTotalS = 0, absTotalP = 0;
-            db.sales.forEach(s => {
+            filteredSales.forEach(s => {
                 absTotalS += s.total;
                 absTotalP += (s.profit || 0);
             });
 
-            const rev = [...db.sales].reverse().filter(s => {
+            const rev = [...filteredSales].reverse().filter(s => {
                 return s.id.toString().includes(q) || s.date.toLowerCase().includes(q);
             });
 
@@ -3346,10 +3380,10 @@
 
             document.getElementById('rep-sales').innerText = absTotalS.toFixed(2) + ' ج.م';
             document.getElementById('rep-profit').innerText = absTotalP.toFixed(2) + ' ج.م';
-            document.getElementById('rep-count').innerText = db.sales.length;
+            document.getElementById('rep-count').innerText = filteredSales.length;
 
             let productSales = {};
-            db.sales.forEach(s => {
+            filteredSales.forEach(s => {
                 (s.items || []).forEach(i => {
                     if (!productSales[i.id]) productSales[i.id] = { name: i.name, qty: 0, rev: 0 };
                     productSales[i.id].qty += i.cartQty;
